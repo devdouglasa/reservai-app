@@ -1,0 +1,55 @@
+export const fonts = {
+  regular: "Manrope_400Regular",
+  medium: "Manrope_500Medium",
+  semibold: "Manrope_600SemiBold",
+  bold: "Manrope_700Bold",
+  extraBold: "Manrope_800ExtraBold",
+};
+export const spacing = { xs: 6, sm: 10, md: 16, lg: 24, xl: 32, xxl: 48 };
+export const radii = { sm: 10, md: 16, lg: 24, xl: 32, pill: 999 };
+export const lightColors = {
+  primary: "#5B42D6",
+  onPrimary: "#FFFFFF",
+  accent: "#FF806C",
+  onAccent: "#39202B",
+  background: "#F7F7FC",
+  surface: "#FFFFFF",
+  surfaceAlt: "#EFECFA",
+  text: "#201A35",
+  muted: "#6B647C",
+  border: "#E6E2F0",
+  success: "#236B4D",
+  successBg: "#E8F5ED",
+  warning: "#785209",
+  warningBg: "#FFF3D6",
+  danger: "#AA3549",
+  dangerBg: "#FCEBF0",
+  neutral: "#60596E",
+  neutralBg: "#EEECF3",
+  skeleton: "#E8E3F1",
+  overlay: "#14111F99",
+};
+export type ThemeColors = typeof lightColors;
+export const darkColors: ThemeColors = {
+  primary: "#9D8CFF",
+  onPrimary: "#1C1233",
+  accent: "#FF9A87",
+  onAccent: "#39202B",
+  background: "#14111F",
+  surface: "#211B30",
+  surfaceAlt: "#2D2540",
+  text: "#F3EFFA",
+  muted: "#B9B0C9",
+  border: "#3D344F",
+  success: "#8ED7AC",
+  successBg: "#18372D",
+  warning: "#F6D185",
+  warningBg: "#3D301C",
+  danger: "#FFAFBC",
+  dangerBg: "#41232F",
+  neutral: "#C2B9D4",
+  neutralBg: "#302A3E",
+  skeleton: "#383047",
+  overlay: "#09070EC9",
+};
+export type ThemePreference = "system" | "light" | "dark";

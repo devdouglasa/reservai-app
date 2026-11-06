@@ -1,15 +1,16 @@
 import { useState } from "react";
-import { Switch, View } from "react-native";
+import { Pressable, Switch, Text, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, post, put } from "@/lib/api";
 import { useSession } from "@/lib/providers";
+import { useTheme } from "@/theme/context";
+import { fonts } from "@/theme/tokens";
+import { CategoryFilter } from "@/components/category-filter";
 import {
   type Space,
   type Schedule,
   type Block,
-  type Category,
-  categories,
   dateLabel,
   timeLabel,
   today,
@@ -24,6 +25,8 @@ import {
   Loading,
   Notice,
   Page,
+  SegmentedControl,
+  Icon,
   styles,
 } from "@/components/ui-kit";
 const days = [
@@ -53,6 +56,7 @@ function SpaceForm({
   id: string;
 }) {
   const [form, setForm] = useState(initial);
+  const { colors } = useTheme();
   const client = useQueryClient();
   const { online } = useSession();
   const [capacity, setCapacity] = useState(String(initial.capacity));
@@ -93,16 +97,13 @@ function SpaceForm({
         onChangeText={(description) => setForm({ ...form, description })}
       />
       <Copy>Categoria</Copy>
-      <View style={styles.row}>
-        {Object.entries(categories).map(([key, label]) => (
-          <Button
-            key={key}
-            secondary={form.category !== key}
-            title={label}
-            onPress={() => setForm({ ...form, category: key as Category })}
-          />
-        ))}
-      </View>
+      <CategoryFilter
+        includeAll={false}
+        value={form.category}
+        onChange={(category) => {
+          if (category) setForm({ ...form, category });
+        }}
+      />
       <Field
         label="Endereço"
         value={form.address}
@@ -132,6 +133,7 @@ function SpaceForm({
         <Switch
           accessibilityLabel="Espaço ativo"
           value={form.active}
+          trackColor={{ false: colors.border, true: colors.primary }}
           onValueChange={(active) => setForm({ ...form, active })}
         />
         <Copy>Disponível para novas reservas</Copy>
@@ -158,6 +160,8 @@ function SpaceForm({
   );
 }
 function ScheduleForm({ id, initial }: { id: string; initial: Schedule[] }) {
+  const { colors } = useTheme();
+  const [expandedDay, setExpandedDay] = useState<number | null>(1);
   const [intervals, setIntervals] = useState<Schedule[]>(
     initial.map(({ weekday, startTime, endTime }) => ({
       weekday,
@@ -198,46 +202,91 @@ function ScheduleForm({ id, initial }: { id: string; initial: Schedule[] }) {
             gap: 12,
             paddingVertical: 10,
             borderBottomWidth: 1,
-            borderBottomColor: "#E6ECE5",
+            borderBottomColor: colors.border,
           }}
         >
-          <Heading>{day}</Heading>
-          {intervals.map(
-            (item, index) =>
-              item.weekday === weekday && (
-                <View key={index} style={styles.row}>
-                  <Field
-                    label="Início"
-                    value={item.startTime}
-                    maxLength={5}
-                    onChangeText={(value) => change(index, "startTime", value)}
-                  />
-                  <Field
-                    label="Término"
-                    value={item.endTime}
-                    maxLength={5}
-                    onChangeText={(value) => change(index, "endTime", value)}
-                  />
-                  <Button
-                    secondary
-                    title="Remover"
-                    onPress={() =>
-                      setIntervals(intervals.filter((_, i) => i !== index))
-                    }
-                  />
-                </View>
-              ),
-          )}
-          <Button
-            secondary
-            title="+ Adicionar intervalo"
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`${day}, ${intervals.filter((item) => item.weekday === weekday).length} ${intervals.filter((item) => item.weekday === weekday).length === 1 ? "intervalo" : "intervalos"}`}
+            accessibilityState={{ expanded: expandedDay === weekday }}
+            aria-expanded={expandedDay === weekday}
             onPress={() =>
-              setIntervals([
-                ...intervals,
-                { weekday, startTime: "08:00", endTime: "18:00" },
-              ])
+              setExpandedDay(expandedDay === weekday ? null : weekday)
             }
-          />
+            style={{
+              minHeight: 54,
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 12,
+            }}
+          >
+            <View style={{ flex: 1, gap: 3 }}>
+              <Text
+                style={{
+                  fontFamily: fonts.bold,
+                  fontSize: 15,
+                  color: colors.text,
+                }}
+              >
+                {day}
+              </Text>
+              <Copy small>
+                {intervals
+                  .filter((item) => item.weekday === weekday)
+                  .map((item) => `${item.startTime}–${item.endTime}`)
+                  .join(" · ") || "Fechado"}
+              </Copy>
+            </View>
+            <Icon
+              name={expandedDay === weekday ? "chevron-up" : "chevron-down"}
+              color={colors.primary}
+            />
+          </Pressable>
+          <View
+            style={{
+              display: expandedDay === weekday ? "flex" : "none",
+              gap: 12,
+            }}
+          >
+            {intervals.map(
+              (item, index) =>
+                item.weekday === weekday && (
+                  <View key={index} style={styles.row}>
+                    <Field
+                      label="Início"
+                      value={item.startTime}
+                      maxLength={5}
+                      onChangeText={(value) =>
+                        change(index, "startTime", value)
+                      }
+                    />
+                    <Field
+                      label="Término"
+                      value={item.endTime}
+                      maxLength={5}
+                      onChangeText={(value) => change(index, "endTime", value)}
+                    />
+                    <Button
+                      secondary
+                      title="Remover"
+                      onPress={() =>
+                        setIntervals(intervals.filter((_, i) => i !== index))
+                      }
+                    />
+                  </View>
+                ),
+            )}
+            <Button
+              secondary
+              title="+ Adicionar intervalo"
+              onPress={() =>
+                setIntervals([
+                  ...intervals,
+                  { weekday, startTime: "08:00", endTime: "18:00" },
+                ])
+              }
+            />
+          </View>
         </View>
       ))}
       <Notice error text={save.error?.message} />
@@ -348,6 +397,9 @@ function BlocksForm({ id }: { id: string }) {
   );
 }
 function Editor() {
+  const [section, setSection] = useState<"information" | "schedule" | "blocks">(
+    "information",
+  );
   const { id } = useLocalSearchParams<{ id: string }>();
   const isNew = id === "new";
   const space = useQuery({
@@ -369,15 +421,36 @@ function Editor() {
     >
       {!isNew && space.isPending && <Loading />}
       <Notice error text={space.error?.message ?? schedule.error?.message} />
+      {!isNew && space.data && (
+        <SegmentedControl
+          value={section}
+          onChange={setSection}
+          options={[
+            { value: "information", label: "Informações" },
+            { value: "schedule", label: "Funcionamento" },
+            { value: "blocks", label: "Bloqueios" },
+          ]}
+        />
+      )}
       {(isNew || space.data) && (
-        <SpaceForm key={id} id={id} initial={space.data ?? emptySpace} />
+        <View
+          style={{
+            display: isNew || section === "information" ? "flex" : "none",
+          }}
+        >
+          <SpaceForm key={id} id={id} initial={space.data ?? emptySpace} />
+        </View>
       )}
       {!isNew && space.data && (
         <>
           {schedule.data && (
-            <ScheduleForm key={id} id={id} initial={schedule.data} />
+            <View style={{ display: section === "schedule" ? "flex" : "none" }}>
+              <ScheduleForm key={id} id={id} initial={schedule.data} />
+            </View>
           )}
-          <BlocksForm id={id} />
+          <View style={{ display: section === "blocks" ? "flex" : "none" }}>
+            <BlocksForm id={id} />
+          </View>
         </>
       )}
     </Page>

@@ -1,28 +1,43 @@
-import { Text } from "react-native";
+import { Text, View } from "react-native";
 import { type Booking, statusLabels } from "@/lib/types";
-const colors = {
-  pending: { backgroundColor: "#FFF3D8", color: "#775216" },
-  confirmed: { backgroundColor: "#E7F1E7", color: "#156449" },
-  rejected: { backgroundColor: "#FCEEEE", color: "#A63838" },
-  cancelled: { backgroundColor: "#EDF0F2", color: "#57636B" },
-  expired: { backgroundColor: "#EDF0F2", color: "#57636B" },
-};
+import { useTheme } from "@/theme/context";
+import { fonts } from "@/theme/tokens";
+import { Icon, type IconName } from "./ui-kit";
 export function BookingStatus({ booking }: { booking: Booking }) {
+  const { colors } = useTheme();
   const completed =
     booking.status === "confirmed" && new Date(booking.endsAt) <= new Date();
+  const tones = {
+    pending: { color: colors.warning, bg: colors.warningBg, icon: "clock" },
+    confirmed: {
+      color: colors.success,
+      bg: colors.successBg,
+      icon: "check-circle",
+    },
+    rejected: { color: colors.danger, bg: colors.dangerBg, icon: "x-circle" },
+    cancelled: { color: colors.neutral, bg: colors.neutralBg, icon: "slash" },
+    expired: { color: colors.neutral, bg: colors.neutralBg, icon: "clock" },
+  };
+  const tone = tones[booking.status];
   return (
-    <Text
-      accessibilityRole="text"
+    <View
       style={{
         alignSelf: "flex-start",
-        borderRadius: 10,
-        paddingHorizontal: 12,
-        paddingVertical: 8,
-        fontWeight: "600",
-        ...colors[booking.status],
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 6,
+        borderRadius: 999,
+        paddingHorizontal: 11,
+        paddingVertical: 7,
+        backgroundColor: tone.bg,
       }}
     >
-      {completed ? "Realizada" : statusLabels[booking.status]}
-    </Text>
+      <Icon name={tone.icon as IconName} size={13} color={tone.color} />
+      <Text
+        style={{ fontFamily: fonts.semibold, fontSize: 10, color: tone.color }}
+      >
+        {completed ? "Realizada" : statusLabels[booking.status]}
+      </Text>
+    </View>
   );
 }

@@ -1,9 +1,14 @@
 import { Platform } from "react-native";
 import * as SecureStore from "expo-secure-store";
+import Constants from "expo-constants";
+import { resolveApiUrl } from "./network-config";
 import type { User } from "./types";
-export const API_URL = (
-  process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3000/api/v1"
-).replace(/\/$/, "");
+export const API_URL = resolveApiUrl({
+  configuredUrl: process.env.EXPO_PUBLIC_API_URL,
+  platform: Platform.OS,
+  isDevelopment: __DEV__,
+  hostUri: Constants.expoConfig?.hostUri,
+});
 let accessToken: string | null = null;
 let listener: (user: User | null) => void = () => {};
 let refreshPromise: Promise<User | null> | null = null;
@@ -34,7 +39,13 @@ async function raw<T>(path: string, options: RequestInit = {}): Promise<T> {
       },
       signal: options.signal ?? AbortSignal.timeout(15000),
     });
-  } catch {
+  } catch (error) {
+    if (__DEV__) {
+      console.warn("API connection failed", {
+        baseUrl: API_URL,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
     throw new ApiError(
       0,
       "NETWORK_ERROR",

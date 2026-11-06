@@ -1,65 +1,34 @@
-import { Tabs } from "expo-router";
-import { Text, useWindowDimensions } from "react-native";
-import { useSession } from "@/lib/providers";
-import { palette } from "@/components/ui-kit";
+import { Tabs, router } from "expo-router";
+import { useWindowDimensions } from "react-native";
+import { AppNavigation } from "@/components/app-navigation";
+import { Brand, IconButton } from "@/components/ui-kit";
+import { useTheme } from "@/theme/context";
 export default function TabsLayout() {
-  const { user } = useSession();
+  const { colors } = useTheme();
   const { width } = useWindowDimensions();
   return (
     <Tabs
+      tabBar={(props) => <AppNavigation {...props} />}
       screenOptions={{
-        headerTitle: "Reservai",
-        headerTintColor: palette.green,
-        headerStyle: { backgroundColor: palette.background },
+        headerShown: width < 900,
+        headerTitle: () => <Brand small />,
+        headerRight: () => (
+          <IconButton
+            name="user"
+            label="Abrir perfil"
+            onPress={() => router.push("/profile")}
+          />
+        ),
+        headerStyle: { backgroundColor: colors.background },
         headerShadowVisible: false,
-        tabBarActiveTintColor: palette.green,
-        tabBarActiveBackgroundColor: "#E7F1E7",
-        tabBarInactiveTintColor: palette.muted,
         tabBarPosition: width >= 900 ? "left" : "bottom",
-        tabBarStyle: {
-          backgroundColor: palette.white,
-          borderColor: palette.border,
-        },
-        tabBarLabelStyle: { fontSize: 12, fontWeight: "600" },
+        sceneStyle: { backgroundColor: colors.background },
       }}
     >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: "Explorar",
-          tabBarIcon: ({ color }) => (
-            <Text style={{ color, fontSize: 22 }}>⌕</Text>
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="bookings"
-        options={{
-          title: "Reservas",
-          tabBarIcon: ({ color }) => (
-            <Text style={{ color, fontSize: 20 }}>▦</Text>
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="owner"
-        options={{
-          title: "Gestão",
-          href: user?.role === "owner" ? "/owner" : null,
-          tabBarIcon: ({ color }) => (
-            <Text style={{ color, fontSize: 20 }}>▤</Text>
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: "Perfil",
-          tabBarIcon: ({ color }) => (
-            <Text style={{ color, fontSize: 20 }}>○</Text>
-          ),
-        }}
-      />
+      <Tabs.Screen name="index" options={{ title: "Explorar" }} />
+      <Tabs.Screen name="bookings" options={{ title: "Reservas" }} />
+      <Tabs.Screen name="owner" options={{ title: "Gestão" }} />
+      <Tabs.Screen name="profile" options={{ title: "Perfil" }} />
     </Tabs>
   );
 }

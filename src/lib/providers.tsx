@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { ActivityIndicator, AppState, View } from "react-native";
+import { AppState } from "react-native";
+import { AppBoot } from "@/theme/provider";
 import NetInfo from "@react-native-community/netinfo";
 import {
   QueryClient,
@@ -45,8 +46,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
       .catch(() => {})
       .finally(() => setReady(true));
     const unsubscribe = NetInfo.addEventListener((state) => {
-      const connected =
-        state.isConnected !== false && state.isInternetReachable !== false;
+      // A local API can be reachable even when Android reports no internet access.
+      const connected = state.isConnected !== false;
       setOnline(connected);
       onlineManager.setOnline(connected);
     });
@@ -93,23 +94,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <SessionContext.Provider value={{ user, ready, online }}>
-        {ready ? (
-          children
-        ) : (
-          <View
-            style={{
-              flex: 1,
-              justifyContent: "center",
-              backgroundColor: "#F4F7F3",
-            }}
-          >
-            <ActivityIndicator
-              accessibilityLabel="Carregando Reservai"
-              color="#156449"
-              size="large"
-            />
-          </View>
-        )}
+        {ready ? children : <AppBoot />}
       </SessionContext.Provider>
     </QueryClientProvider>
   );
