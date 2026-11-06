@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "reservai-app",
+    "name": "Reservai",
     "slug": "reservai-app",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -28,11 +28,12 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
+          "backgroundColor": "#156449",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
-      ]
+      ],
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true,
